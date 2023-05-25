@@ -1,80 +1,82 @@
 #include "builtins.h"
 
 /**
- * __rnd_alias_add - add an rnd_alias to a list of rnd_aliases
- * @rnd_aliases: a pointer to a list of rnd_aliases
- * @name: the name of the rnd_alias
- * @value: the value of the rnd_alias
+ * __alias_add - add an alias to a list of aliases
+ * @aliases: a pointer to a list of aliases
+ * @name: the name of the alias
+ * @value: the value of the alias
  */
-void __rnd_alias_add(rnd_alias_t **rnd_aliases, const char *name, const char *value)
+void __alias_add(alias_t **aliases, const char *name, const char *value)
 {
-	rnd_alias_t *rnd_alias = get_dict_node(rnd_aliases ? *rnd_aliases : NULL, name);
+	alias_t *alias = get_dict_node(aliases ? *aliases : NULL, name);
 
-	if (rnd_alias)
+	if (alias)
 	{
-		free(rnd_alias->rnd_val);
-		rnd_alias->rnd_val = _strdup(value);
+		free(alias->val);
+		alias->val = _strdup(value);
 	}
 	else
 	{
-		add_dict_node_end(rnd_aliases, name, value);
+		add_dict_node_end(aliases, name, value);
 	}
 }
 
+
 /**
- * __rnd_alias_print - print an rnd_alias
- * @rnd_alias: the rnd_alias to print
+ * __alias_print - print an alias
+ * @alias: the alias to print
  */
-void __rnd_alias_print(rnd_alias_t *rnd_alias)
+void __alias_print(alias_t *alias)
 {
-	write(STDOUT_FILENO, rnd_alias->rnd_key, _strlen(rnd_alias->rnd_key));
+	write(STDOUT_FILENO, alias->key, _strlen(alias->key));
 	write(STDOUT_FILENO, "='", 2);
-	write(STDOUT_FILENO, rnd_alias->rnd_val, _strlen(rnd_alias->rnd_val));
+	write(STDOUT_FILENO, alias->val, _strlen(alias->val));
 	write(STDOUT_FILENO, "'\n", 2);
 }
 
+
 /**
- * __rnd_alias - create and display rnd_aliases
- * @rnd_info: rnd_info struct
+ * __alias - create and display aliases
+ * @info: shell info struct
  *
  * Return: status
  */
-int __rnd_alias(rnd_info_t *rnd_info)
+int __alias(info_t *info)
 {
-	rnd_alias_t *rnd_alias;
-	char *name, **args = rnd_info->rnd_tokens + 1;
+	alias_t *alias;
+	char *name, **args = info->tokens + 1;
 	ssize_t name_len;
 
-	rnd_info->rnd_status = EXIT_SUCCESS;
+	info->status = EXIT_SUCCESS;
 	if (*args)
 	{
 		do {
 			name_len = _strchr(*args, '=');
 			if (name_len == -1)
 			{
-				rnd_alias = get_dict_node(rnd_info->rnd_aliases, *args);
-				if (rnd_alias)
+				alias = get_dict_node(info->aliases, *args);
+				if (alias)
 				{
-					__rnd_alias_print(rnd_alias);
+					__alias_print(alias);
 				}
 				else
 				{
-					perrorl("not found", *rnd_info->rnd_tokens, *args, NULL);
-					rnd_info->rnd_status = EXIT_FAILURE;
+					perrorl("not found", *info->tokens, *args, NULL);
+					info->status = EXIT_FAILURE;
 				}
 			}
 			else
 			{
 				name = _strndup(*args, name_len);
-				__rnd_alias_add(&rnd_info->rnd_aliases, name, *args + name_len + 1);
+				__alias_add(&info->aliases, name, *args + name_len + 1);
 				free(name);
 			}
 		} while (*++args);
 	}
 	else
 	{
-		for (rnd_alias = rnd_info->rnd_aliases; rnd_alias; rnd_alias = rnd_alias->next)
-			__rnd_alias_print(rnd_alias);
+		for (alias = info->aliases; alias; alias = alias->next)
+			__alias_print(alias);
 	}
-	return (rnd_info->rnd_status);
+	return (info->status);
 }
