@@ -1,4 +1,2 @@
-
-# Simple Shell ALX
-
-## we are in togther 
+Simple Shell ALX
+we are in togthers
